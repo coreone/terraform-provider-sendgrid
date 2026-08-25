@@ -392,7 +392,13 @@ func (r *eventWebhookResource) Update(ctx context.Context, req resource.UpdateRe
 		return
 	}
 
-	var publicKey string
+	// The Update Event Webhook API response does not include public_key
+	// (see https://docs.sendgrid.com/api-reference/webhooks/update-an-event-webhook),
+	// so it cannot be refreshed from `o` above. Default to the previously
+	// known value and only replace it below when signature verification is
+	// actually toggled, otherwise it would be cleared to "" on every update
+	// that leaves `signed` unchanged.
+	publicKey := state.PublicKey.ValueString()
 	signed := plan.Signed.ValueBool()
 
 	// Handle signature verification separately if it has changed
